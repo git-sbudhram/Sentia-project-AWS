@@ -1,6 +1,8 @@
-## Welcome to GitHub Pages
+## Welcome to the github page of team Champions!
 
-You can use the [editor on GitHub](https://github.com/git-sbudhram/Sentia-project-AWS/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
+Our team was assigned a recruitment assignment from Sentia that highlights the strenghts needed by a cloud systems consultant.
+
+This page will explain in detail our choices, mindset and teamwork that made this project happen. 
 
 Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
 
