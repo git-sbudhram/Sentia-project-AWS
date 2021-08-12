@@ -1,0 +1,381 @@
+AWSTemplateFormatVersion: 2010-09-09
+Metadata:
+  'AWS::CloudFormation::Designer':
+    embeds: []
+Resources:
+  VPCProject:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: String
+      EnableDnsHostNames: Boolean
+      EnableDnsSupport: Boolean
+      InstanceTenancy: String
+      Tags:
+        - Tag
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 4617893e-305b-43eb-9ccd-53c3d998128d
+  InternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties:
+      Tags:
+        - Tag
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: c3cb86e8-a882-42b5-a075-4a9a4b592c1d
+  BeanStalkApp:
+    Type: 'AWS::ElasticBeanstalk::Application'
+    Properties:
+      ApplicationName: String
+      Description: String
+      ResourceLifecycleConfig: ApplicationResourceLifecycleConfig
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 25df18ef-a71d-40d9-91c9-7c09795eabc6
+    DependsOn:
+      - VPCProject
+  DocumentDB:
+    Type: 'AWS::DocDB::DBCluster'
+    Properties:
+      AvailabilityZones:
+        - String
+      BackUpRetentionPeriod: Integer
+      DBClusterIdentifier: String
+      DBClusterParameterGroupName: String
+      DBSubnetGroupName: String
+      DeletionProtection: Boolean
+      EnableCloudwatchLogsExports:
+        - String
+      EngineVersion: String
+      KmsKeyId: String
+      MasterUsername: String
+      MasterUserPassword: String
+      Port: Integer
+      PreferredBackupWindow: String
+      PreferredMaintenanceWindow: String
+      SnapshotIdentifier: String
+      StorageEncrypted: Boolean
+      Tags:
+        - Tag
+      VpcSecurityGroupIds:
+        - String
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: afcf8c80-50e4-4978-b094-04fc29166409
+    DependsOn:
+      - SubnetDocDB
+      - BeanStalkApp
+  SubnetDocDB:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AssignIpv6AddressOnCreation: Boolean
+      AvailabilityZone: String
+      CidrBlock: String
+      Ipv6CidrBlock: String
+      MapPublicIpOnLaunch: Boolean
+      OutpostArn: String
+      Tags:
+        - Tag
+      VpcId: !Ref VPCProject
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 7635a6fc-c476-4f65-b672-eb6501599706
+    DependsOn:
+      - VPCProject
+  CloudWatchBeanstalk:
+    Type: 'AWS::CloudWatch::MetricStream'
+    Properties:
+      ExcludeFilters:
+        - MetricStreamFilter
+      FirehoseArn: String
+      IncludeFilters:
+        - MetricStreamFilter
+      Name: String
+      OutputFormat: String
+      RoleArn: String
+      Tags:
+        - Tag
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: ccb94f62-048a-4356-b613-816c05622065
+    DependsOn:
+      - BeanStalkApp
+  EventAnalyzerLambda:
+    Type: 'AWS::Lambda::Alias'
+    Properties:
+      Description: String
+      FunctionName: String
+      FunctionVersion: String
+      Name: String
+      ProvisionedConcurrencyConfig: ProvisionedConcurrencyConfiguration
+      RoutingConfig: AliasRoutingConfiguration
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 93342126-cd01-40e5-85b9-99cfabce3670
+    DependsOn:
+      - CloudWatchBeanstalk
+  S3BucketCSV:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      AccelerateConfiguration: AccelerateConfiguration
+      AccessControl: String
+      AnalyticsConfigurations:
+        - AnalyticsConfiguration
+      BucketEncryption: BucketEncryption
+      BucketName: String
+      CorsConfiguration: CorsConfiguration
+      IntelligentTieringConfigurations:
+        - IntelligentTieringConfiguration
+      InventoryConfigurations:
+        - InventoryConfiguration
+      LifecycleConfiguration: LifecycleConfiguration
+      LoggingConfiguration: LoggingConfiguration
+      MetricsConfigurations:
+        - MetricsConfiguration
+      NotificationConfiguration: NotificationConfiguration
+      ObjectLockConfiguration: ObjectLockConfiguration
+      ObjectLockEnabled: Boolean
+      OwnershipControls: OwnershipControls
+      PublicAccessBlockConfiguration: PublicAccessBlockConfiguration
+      ReplicationConfiguration: ReplicationConfiguration
+      Tags:
+        - Tag
+      VersioningConfiguration: VersioningConfiguration
+      WebsiteConfiguration: WebsiteConfiguration
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 46821aa4-56e4-45d1-884e-16ce8002b353
+    DependsOn:
+      - EventAnalyzerLambda
+      - AthenaCatalog
+  AthenaCatalog:
+    Type: 'AWS::Athena::DataCatalog'
+    Properties:
+      Description: String
+      Name: String
+      Parameters:
+        Key: Value
+      Tags:
+        - Tag
+      Type: String
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 375f7665-8d8b-4599-b3a3-3ae375a1eec8
+    DependsOn:
+      - S3BucketCSV
+  QuickSightAthena:
+    Type: 'AWS::QuickSight::Analysis'
+    Properties:
+      AnalysisId: String
+      AwsAccountId: String
+      Errors:
+        - AnalysisError
+      Name: String
+      Parameters: Parameters
+      Permissions:
+        - ResourcePermission
+      SourceEntity: AnalysisSourceEntity
+      Tags:
+        - Tag
+      ThemeArn: String
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 77cc9af8-9181-4ab0-9b45-09bc50f6d3b1
+    DependsOn:
+      - PrivateSubnetAthena
+  PrivateSubnetAthena:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AssignIpv6AddressOnCreation: Boolean
+      AvailabilityZone: String
+      CidrBlock: String
+      Ipv6CidrBlock: String
+      MapPublicIpOnLaunch: Boolean
+      OutpostArn: String
+      Tags:
+        - Tag
+      VpcId: !Ref VPCProject
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: acd7049b-1221-408f-9b91-43e8e70bb746
+    DependsOn:
+      - VPCProject
+  VPGQuickSight:
+    Type: 'AWS::EC2::VPNGateway'
+    Properties:
+      AmazonSideAsn: Long
+      Tags:
+        - Tag
+      Type: String
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 766436f4-4e25-4a87-9e04-156d59cfe8b6
+    DependsOn:
+      - PrivateSubnetAthena
+  CustomerGateway:
+    Type: 'AWS::EC2::CustomerGateway'
+    Properties:
+      BgpAsn: Integer
+      IpAddress: String
+      Tags:
+        - Tag
+      Type: String
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: cc0253b6-bff8-4ebf-a54c-acb9f633c9f6
+  TimeBasedEventsCloudwatch:
+    Type: 'AWS::Cloudwatch::Alarm'
+    Properties:
+      ActionsEnabled: Boolean
+      AlarmActions:
+        - String
+      AlarmDescription: String
+      AlarmName: String
+      ComparisonOperator: String
+      DatapointsToAlarm: Integer
+      Dimensions:
+        - Dimension
+      EvaluateLowSampleCountPercentile: String
+      EvaluationPeriods: Integer
+      ExtendedStatistic: String
+      InsufficientDataActions:
+        - String
+      MetricName: String
+      Metrics:
+        - MetricDataQuery
+      Namespace: String
+      OKActions:
+        - String
+      Period: Integer
+      Statistic: String
+      Threshold: Double
+      ThresholdMetricId: String
+      TreatMissingData: String
+      Unit: String
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 56b7b15d-4765-4572-af41-a7da717a3f53
+    DependsOn:
+      - CloudWatchBeanstalk
+  CronJobsLambda:
+    Type: 'AWS::Lambda::Alias'
+    Properties:
+      Description: String
+      FunctionName: String
+      FunctionVersion: String
+      Name: String
+      ProvisionedConcurrencyConfig: ProvisionedConcurrencyConfiguration
+      RoutingConfig: AliasRoutingConfiguration
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 30a991d1-0bab-4352-ae4d-b7a0e5ad72df
+    DependsOn:
+      - TimeBasedEventsCloudwatch
+  sFTPS3:
+    Type: 'AWS::S3::AccessPoint'
+    Properties:
+      Bucket: String
+      Policy: Json
+      PolicyStatus: Json
+      PublicAccessBlockConfiguration: PublicAccessBlockConfiguration
+      VpcConfiguration: VpcConfiguration
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 278a343e-0231-47ff-a5b3-96840fe344b3
+    DependsOn:
+      - S3IntelligentTiering
+  S3IntelligentTiering:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      AccelerateConfiguration: AccelerateConfiguration
+      AccessControl: String
+      AnalyticsConfigurations:
+        - AnalyticsConfiguration
+      BucketEncryption: BucketEncryption
+      BucketName: String
+      CorsConfiguration: CorsConfiguration
+      IntelligentTieringConfigurations:
+        - IntelligentTieringConfiguration
+      InventoryConfigurations:
+        - InventoryConfiguration
+      LifecycleConfiguration: LifecycleConfiguration
+      LoggingConfiguration: LoggingConfiguration
+      MetricsConfigurations:
+        - MetricsConfiguration
+      NotificationConfiguration: NotificationConfiguration
+      ObjectLockConfiguration: ObjectLockConfiguration
+      ObjectLockEnabled: Boolean
+      OwnershipControls: OwnershipControls
+      PublicAccessBlockConfiguration: PublicAccessBlockConfiguration
+      ReplicationConfiguration: ReplicationConfiguration
+      Tags:
+        - Tag
+      VersioningConfiguration: VersioningConfiguration
+      WebsiteConfiguration: WebsiteConfiguration
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 27420abd-a1d5-4c39-ae36-73196f396a1a
+  S3BucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket: String
+      PolicyDocument: Json
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 056e9c85-1e68-4fb8-ab92-77eaa53a5b3d
+  SecurityGroupBeanstalk80:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: String
+      GroupName: String
+      SecurityGroupEgress:
+        - Egress
+      SecurityGroupIngress:
+        - Ingress
+      Tags:
+        - Tag
+      VpcId: String
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 1968c7cd-36d7-4052-9c35-c7fa60ab9732
+  SecurityGroupExternal:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: String
+      GroupName: String
+      SecurityGroupEgress:
+        - Egress
+      SecurityGroupIngress:
+        - Ingress
+      Tags:
+        - Tag
+      VpcId: String
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: eff6d70b-be39-4958-8e53-cc77cc5a9154
+  EC2VPCG1AZ68:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPCProject
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: e9079d27-0906-45a7-9eaa-f69ad9c966e3
+  EC2NG4C36O:
+    Type: 'AWS::EC2::NatGateway'
+    Properties:
+      SubnetId: !Ref PrivateSubnetAthena
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 3b657952-f9c5-4906-a8f7-e239f4460674
+    DependsOn:
+      - PrivateSubnetAthena
+      - AthenaCatalog
+  EC2VPCG3540Q:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      VpnGatewayId: !Ref VPGQuickSight
+      VpcId: !Ref VPCProject
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 82a636a2-6524-4c4a-9b4b-69894d38ecb9
